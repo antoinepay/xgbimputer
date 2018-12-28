@@ -10,7 +10,9 @@ setup(
     author_email='antoine.payan@hotmail.fr',
     description='Imputation with XGBoost',
     install_requires=[
-          'numpy',
-          'pandas',
+        'numpy',
+        'pandas',
+        'scikit-learn',
+        'xgboost'
     ],
 )
