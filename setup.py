@@ -13,6 +13,7 @@ setup(
         'numpy',
         'pandas',
         'scikit-learn',
-        'xgboost'
+        'xgboost',
+        'pytest'
     ],
 )

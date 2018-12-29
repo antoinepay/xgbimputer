@@ -1,54 +1,48 @@
 import pandas as pd
 from .exception import *
 import xgboost as xgb
-import numpy as np
 from sklearn.model_selection import RandomizedSearchCV
 
 
 class XGBImputer:
-    def __init__(self, data, missing_values_variable, features, random_seed=21):
+    def __init__(self, data, random_seed=21):
         self.data = data
-        self.missing_values_variable = missing_values_variable
-        self.features = features
         self.random_seed = random_seed
 
-        self.check_params()
-
-    def check_params(self):
+    def check_params(self, missing_values_variable, features):
         if not isinstance(self.data, pd.DataFrame):
             raise WrongArgumentException('data is not a dataframe')
 
-        if self.missing_values_variable not in self.data.columns:
-            raise WrongArgumentException('%s not found in data columns' % self.missing_values_variable)
+        if missing_values_variable not in self.data.columns:
+            raise WrongArgumentException('%s not found in data columns' % missing_values_variable)
 
-        if not set(self.features).issubset(self.data.columns):
+        if not set(features).issubset(self.data.columns):
             raise WrongArgumentException(
-                'variables : %s not found in data' % list(set(self.features).difference(self.data.columns))
+                'variables : %s not found in data' % list(set(features).difference(self.data.columns))
             )
 
-        if self.data[self.missing_values_variable].isna().sum() == 0:
-            raise NotNecessaryImputationException('No NAs in %s variable' % self.missing_values_variable)
+        if self.data[missing_values_variable].isna().sum() == 0:
+            raise NotNecessaryImputationException('No NAs in %s variable' % missing_values_variable)
 
-    def imputation_accuracy(self, params=None, with_cv=True, n_jobs=1, n_iter=5):
+    def imputation_accuracy(self, missing_values_variable, features, params=None, with_cv=True, n_jobs=1, n_iter=5):
         pass
 
-    def impute(self, params=None, with_cv=True, n_jobs=1, n_iter=5):
+    def impute(self, missing_values_variable, features, params=None, with_cv=True, n_jobs=1, n_iter=5):
 
-        gbm = None
-        scoring = ''
+        self.check_params(missing_values_variable, features)
 
         params = params if params else {}
 
-        train_set = self.data.dropna(subset=[self.missing_values_variable])
+        train_set = self.data.dropna(subset=[missing_values_variable])
 
-        X_train, y_train = train_set.drop(columns=[self.missing_values_variable]), train_set[self.missing_values_variable]
+        X_train, y_train = train_set[features], train_set[missing_values_variable]
 
-        X_fill = self.data[self.data[self.missing_values_variable].isnull()]
+        X_fill = self.data[self.data[missing_values_variable].isnull()]
 
-        if self.data.dtypes[self.missing_values_variable] == 'object':
+        if self.data.dtypes[missing_values_variable] == 'object':
             gbm = xgb.XGBClassifier(**params)
 
-            classes = pd.unique(self.data.dropna(subset=[self.missing_values_variable])[self.missing_values_variable])
+            classes = pd.unique(self.data.dropna(subset=[missing_values_variable])[missing_values_variable])
 
             n_classes = len(classes)
 
@@ -90,10 +84,10 @@ class XGBImputer:
             gbm.fit(X_train, y_train)
 
         predictions = pd.Series(
-            gbm.predict(X_fill.drop(columns=self.missing_values_variable)),
+            gbm.predict(X_fill.drop(columns=missing_values_variable)),
             index=X_fill.index
         )
 
-        self.data[self.missing_values_variable] = self.data[self.missing_values_variable].fillna(predictions)
+        self.data[missing_values_variable] = self.data[missing_values_variable].fillna(predictions)
 
         return self.data
