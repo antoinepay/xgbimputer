@@ -1,4 +1,4 @@
 from .exception import WrongArgumentException
-from .core import impute
+from .core import XGBImputer
 
-__all__ = ['impute']
+__all__ = ['XGBImputer']
