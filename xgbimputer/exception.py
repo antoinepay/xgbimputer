@@ -4,3 +4,7 @@ class WrongArgumentException(Exception):
 
 class NotNecessaryImputationException(Exception):
     pass
+
+
+class ModelNotFittedException(Exception):
+    pass
