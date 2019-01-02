@@ -17,7 +17,7 @@ class TestImputation:
             'e': [random.randint(1, 50) for i in range(100)]
         })
 
-        XGBImputer(data).check_params('a', ['b', 'c', 'd', 'e'])
+        XGBImputer().check_params(data, 'a', ['b', 'c', 'd', 'e'])
 
     def test_check_params_wrong_arguments(self):
         data = pd.DataFrame({
@@ -28,7 +28,7 @@ class TestImputation:
             'e': [random.randint(1, 50) for i in range(100)]
         })
 
-        pytest.raises(WrongArgumentException, "XGBImputer(data).check_params('f', ['b', 'c', 'd', 'e'])")
+        pytest.raises(WrongArgumentException, "XGBImputer().check_params(data, 'f', ['b', 'c', 'd', 'e'])")
 
     def test_check_params_not_necessary(self):
         data = pd.DataFrame({
@@ -39,7 +39,7 @@ class TestImputation:
             'e': [random.randint(1, 50) for i in range(100)]
         })
 
-        pytest.raises(NotNecessaryImputationException, "XGBImputer(data).check_params('a', ['b', 'c', 'd', 'e'])")
+        pytest.raises(NotNecessaryImputationException, "XGBImputer().check_params(data, 'a', ['b', 'c', 'd', 'e'])")
 
     def test_reg_imputation_shape(self):
 
@@ -53,7 +53,7 @@ class TestImputation:
 
         orig_shape = data.shape
 
-        XGBImputer(data).fit('a', ['b', 'c', 'd', 'e']).transform('a')
+        XGBImputer().fit(data, 'a', ['b', 'c', 'd', 'e']).transform(data, 'a')
 
         assert data.shape == orig_shape
 
@@ -69,7 +69,7 @@ class TestImputation:
 
         orig_shape = data.shape
 
-        XGBImputer(data).fit('a', ['b', 'c', 'd', 'e'], with_cv=True).transform('a')
+        XGBImputer(with_cv=True).fit(data, 'a', ['b', 'c', 'd', 'e']).transform(data, 'a')
 
         assert data.shape == orig_shape
 
@@ -85,7 +85,7 @@ class TestImputation:
 
         assert data['a'].isna().sum() > 0
 
-        XGBImputer(data).fit('a', ['b', 'c', 'd', 'e'], with_cv=True).transform('a')
+        XGBImputer(with_cv=True).fit(data, 'a', ['b', 'c', 'd', 'e']).transform(data, 'a')
 
         assert data['a'].isna().sum() == 0
 
@@ -101,9 +101,9 @@ class TestImputation:
 
         assert data['a'].isna().sum() > 0
 
-        XGBImputer(data).fit_transform('a', ['b', 'c', 'd', 'e'], with_cv=True, n_iter=5)
+        data_imputed = XGBImputer(with_cv=True).fit_transform(data, 'a', ['b', 'c', 'd', 'e'], n_iter=5)
 
-        assert data['a'].isna().sum() == 0
+        assert data_imputed['a'].isna().sum() == 0
 
     def test_bin_log_no_na_after_fit_transform(self):
 
@@ -117,14 +117,14 @@ class TestImputation:
 
         assert data['a'].isna().sum() > 0
 
-        XGBImputer(data).fit_transform('a', ['b', 'c', 'd', 'e'], with_cv=True, n_iter=5)
+        data_imputed = XGBImputer(with_cv=True).fit_transform(data, 'a', ['b', 'c', 'd', 'e'], n_iter=5)
 
-        assert data['a'].isna().sum() == 0
+        assert data_imputed['a'].isna().sum() == 0
 
     def test_multi_no_na_after_fit_transform(self):
 
         data = pd.DataFrame({
-            'a': [random.choice(string.ascii_lowercase[:20]) for i in range(98)] + [np.nan, np.nan],
+            'a': [random.choice(string.ascii_lowercase[:10]) for i in range(98)] + [np.nan, np.nan],
             'b': [random.randint(1, 50) for i in range(100)],
             'c': [random.randint(1, 50) for i in range(100)],
             'd': [random.randint(1, 50) for i in range(100)],
@@ -133,8 +133,8 @@ class TestImputation:
 
         assert data['a'].isna().sum() > 0
 
-        XGBImputer(data).fit_transform('a', ['b', 'c', 'd', 'e'], with_cv=True, n_iter=5)
+        data_imputed = XGBImputer(with_cv=True).fit_transform(data, 'a', ['b', 'c', 'd', 'e'], n_iter=5)
 
-        assert data['a'].isna().sum() == 0
+        assert data_imputed['a'].isna().sum() == 0
 
 
