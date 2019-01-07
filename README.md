@@ -1,5 +1,8 @@
 # XGBoost Imputer
 
+[![](https://img.shields.io/github/license/antoinepay/xgbimputer.svg)](https://github.com/antoinepay/xgbimputer)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dwyl/esta/issues)
+
 Impute missing values with XGBoost algorithm from choosen features of your dataset. 
 
 Note : This process shall be used only with features where missing values are not MAR (Missing at random)
