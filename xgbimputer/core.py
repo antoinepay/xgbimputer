@@ -1,8 +1,9 @@
 import pandas as pd
-from .exception import *
 import xgboost as xgb
 from sklearn.model_selection import RandomizedSearchCV
 
+from .exception import *
+from .grid_param import GridParam
 
 class XGBImputer:
     def __init__(self, with_cv=True, verbose=0, random_seed=21):
@@ -82,7 +83,7 @@ class XGBImputer:
         if not self.with_cv:
             gbm.fit(X_train, y_train)
 
-        self.gbm = self.fit_with_cv(gbm, X_train, y_train, scoring, n_jobs, n_iter) if self.with_cv else gbm
+        self.gbm = self.fit_with_cv(gbm, X_train, y_train, scoring, n_jobs, n_iter, params) if self.with_cv else gbm
 
         return self
 
@@ -179,7 +180,7 @@ class XGBImputer:
             gbm.set_params(objective='multi:softmax', n_classes=n_classes)
             return gbm, 'accuracy'
 
-    def fit_with_cv(self, booster, X_train, y_train, scoring, n_jobs, n_iter):
+    def fit_with_cv(self, booster, X_train, y_train, scoring, n_jobs, n_iter, params):
         """
         Select the best model according to the target variable
             - XGBoost regression for continuous variable
@@ -200,13 +201,23 @@ class XGBImputer:
             Number of different threads used for Cross-Validation
         n_iter : int
             Number of different parameters set to use in Cross-Validation
+        params : dict
+            Parameters to use initially for GridSearch
         """
+
+        classifier = xgb.XGBClassifier()
+
         params = {
-            'max_depth': [4, 6, 8, 10],
-            'learning_rate': [0.05, 0.01, 0.05, 0.1, 0.2],
-            'n_estimators': [50, 100, 200],
-            'subsample': [0.5, 0.8, 1.0],
-            'colsample_bytree': [0.5, 0.8, 1]
+            'max_depth': GridParam(params['max_depth'] if 'max_depth' in params else
+                                   classifier.max_depth, 2, 10, 2, 5).get_range(),
+            'learning_rate': GridParam(params['learning_rate'] if 'learning_rate' in params else
+                                       classifier.learning_rate, 0.05, 0.4, 0.005, 5).get_range(),
+            'n_estimators': GridParam(params['n_estimators'] if 'n_estimators' in params else
+                                      classifier.n_estimators, 50, 400, 20, 3).get_range(),
+            'subsample': GridParam(params['subsample'] if 'subsample' in params else
+                                   classifier.subsample, 0.1, 1, 0.5, 5).get_range(),
+            'colsample_bytree': GridParam(params['colsample_bytree'] if 'colsample_bytree' in params else
+                                          classifier.colsample_bytree, 0.1, 1, 0.5, 5).get_range()
         }
 
         grid_search = RandomizedSearchCV(
