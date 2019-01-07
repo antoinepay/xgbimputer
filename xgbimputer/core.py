@@ -165,9 +165,10 @@ class XGBImputer:
             Parameters to be passed into the fitting
         """
         if data.dtypes[missing_values_variable] != 'object':
-            return xgb.XGBRegressor(**params), 'neg_mean_squared_error'
+            gbm = xgb.XGBRegressor(**params).set_params(random_state=self.random_seed)
+            return gbm, 'neg_mean_squared_error'
 
-        gbm = xgb.XGBClassifier(**params)
+        gbm = xgb.XGBClassifier(**params).set_params(random_state=self.random_seed)
 
         classes = pd.unique(data.dropna(subset=[missing_values_variable])[missing_values_variable])
 
@@ -228,7 +229,8 @@ class XGBImputer:
             cv=5,
             n_iter=n_iter,
             iid=False,
-            verbose=self.verbose
+            verbose=self.verbose,
+            random_state=self.random_seed
         )
 
         grid_search.fit(X_train, y_train)
